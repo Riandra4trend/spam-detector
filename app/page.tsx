@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import Tesseract from "tesseract.js"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Zap, CheckCircle, XCircle, Users } from "lucide-react"
 import Link from "next/link"
@@ -17,6 +18,32 @@ export default function SpamDetectorLanding() {
   const [message, setMessage] = useState("")
   const [result, setResult] = useState<SpamResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [ocrLoading, setOcrLoading] = useState(false)
+
+  // **Client-side OCR** langsung di browser
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setOcrLoading(true)
+    try {
+      // Tesseract.js bisa menerima File langsung
+      const {
+        data: { text },
+      } = await Tesseract.recognize(file, "eng", {
+        logger: (m) => {
+          // optional: console.log(m)
+        },
+      })
+
+      // Masukkan hasil OCR ke textarea
+      setMessage(text)
+    } catch (err) {
+      console.error("OCR error:", err)
+    } finally {
+      setOcrLoading(false)
+    }
+  }
 
   const detectSpam = async () => {
     if (!message.trim()) return
@@ -31,12 +58,8 @@ export default function SpamDetectorLanding() {
         body: JSON.stringify({ message }),
       })
 
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`)
-      }
-
+      if (!response.ok) throw new Error(response.statusText)
       const data: SpamResult = await response.json()
-      console.log("Spam detection result:", data)
       setResult(data)
     } catch (error) {
       console.error("Error detecting spam:", error)
@@ -54,15 +77,9 @@ export default function SpamDetectorLanding() {
           <span className="ml-2 text-lg font-bold">SpamGuard</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="#features" className="text-sm font-medium hover:underline underline-offset-4">
-            Features
-          </Link>
-          <Link href="#how-it-works" className="text-sm font-medium hover:underline underline-offset-4">
-            How it Works
-          </Link>
-          <Link href="#contact" className="text-sm font-medium hover:underline underline-offset-4">
-            Contact
-          </Link>
+          <Link href="#features" className="text-sm font-medium hover:underline underline-offset-4">Features</Link>
+          <Link href="#how-it-works" className="text-sm font-medium hover:underline underline-offset-4">How it Works</Link>
+          <Link href="#contact" className="text-sm font-medium hover:underline underline-offset-4">Contact</Link>
         </nav>
       </header>
 
@@ -73,8 +90,7 @@ export default function SpamDetectorLanding() {
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl">
-                  Detect Spam Messages
-                  <span className="text-primary"> Instantly</span>
+                  Detect Spam Messages<span className="text-primary"> Instantly</span>
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                   Protect yourself from unwanted messages with our AI-powered spam detector.
@@ -100,62 +116,74 @@ export default function SpamDetectorLanding() {
 
         {/* Detection Interface */}
         <section className="w-full py-12 flex justify-center">
-          <div className="container px-4 md:px-6">
-            <div className="mx-auto max-w-3xl">
-              <Card className="w-full">
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl">Test Your Message</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Textarea
-                    placeholder="Enter your message here..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="min-h-[120px] resize-none"
-                  />
-                  <Button
-                    onClick={detectSpam}
-                    disabled={!message.trim() || isLoading}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {isLoading ? "Analyzing..." : "Detect Spam"}
-                  </Button>
+        <div className="container px-4 md:px-6 max-w-3xl">
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Test Your Message</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Upload gambar */}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={ocrLoading}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4 file:rounded file:border-0
+                  file:text-sm file:font-semibold file:bg-primary
+                  file:text-primary-foreground hover:file:bg-primary/90"
+              />
+              {ocrLoading && <p className="text-sm text-muted-foreground">Extracting text…</p>}
 
-                  {result && (
-                    <Card
-                      className={`mt-6 ${
-                        result.label === "Spam" ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"
-                      }`}
-                    >
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center space-x-2">
-                            {result.label === "Spam" ? (
-                              <XCircle className="h-6 w-6 text-red-500" />
-                            ) : (
-                              <CheckCircle className="h-6 w-6 text-green-500" />
-                            )}
-                            <span className="text-lg font-semibold">
-                              {result.label === "Spam" ? "SPAM DETECTED" : "LEGITIMATE"}
-                            </span>
-                          </div>
-                          <Badge variant={result.label === "Spam" ? "destructive" : "default"}>
-                            {Math.round(result.probability * 100)}% confidence
-                          </Badge>
-                        </div>
-                        {/* Print entire JSON for debug */}
-                        <pre className="text-xs text-muted-foreground overflow-auto">
-                          {JSON.stringify(result, null, 2)}
-                        </pre>
-                      </CardContent>
-                    </Card>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
+              {/* Textarea manual atau hasil OCR */}
+              <Textarea
+                placeholder="Enter your message here..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="min-h-[120px] resize-none"
+              />
+
+              <Button
+                onClick={detectSpam}
+                disabled={!message.trim() || isLoading}
+                className="w-full"
+                size="lg"
+              >
+                {isLoading ? "Analyzing..." : "Detect Spam"}
+              </Button>
+
+              {result && (
+                <Card
+                  className={`mt-6 ${
+                    result.label === "Spam" ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"
+                  }`}
+                >
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        {result.label === "Spam" ? (
+                          <XCircle className="h-6 w-6 text-red-500" />
+                        ) : (
+                          <CheckCircle className="h-6 w-6 text-green-500" />
+                        )}
+                        <span className="text-lg font-semibold">
+                          {result.label === "Spam" ? "SPAM DETECTED" : "LEGITIMATE"}
+                        </span>
+                      </div>
+                      <Badge variant={result.label === "Spam" ? "destructive" : "default"}>
+                        {Math.round(result.probability * 100)}% confidence
+                      </Badge>
+                    </div>
+                    <pre className="text-xs text-muted-foreground overflow-auto">
+                      {JSON.stringify(result, null, 2)}
+                    </pre>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
         {/* Features Section */}
         <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-muted flex justify-center">
           <div className="container px-4 md:px-6">
