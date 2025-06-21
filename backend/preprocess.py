@@ -6,7 +6,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 
-MAX_LEN = 100
+MAX_LEN = 10000
 NUM_WORDS = 5000
 tokenizer = Tokenizer(num_words=NUM_WORDS)
 def clean_text(text: str) -> str:
