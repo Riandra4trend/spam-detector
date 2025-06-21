@@ -4,6 +4,9 @@ import tensorflow as tf
 from preprocess import tokenize_pad
 from fastapi.middleware.cors import CORSMiddleware
 
+
+app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # sesuaikan origin Next.js
@@ -11,7 +14,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app = FastAPI()
 
 # Load model
 model = tf.keras.models.load_model('spam_cnn_model.h5')
