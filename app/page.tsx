@@ -26,31 +26,6 @@ export default function SpamDetectorLanding() {
   const [isLoading, setIsLoading] = useState(false)
   const [ocrLoading, setOcrLoading] = useState(false)
 
-  // **Client-side OCR** langsung di browser
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setOcrLoading(true)
-    try {
-      // Tesseract.js bisa menerima File langsung
-      const {
-        data: { text },
-      } = await Tesseract.recognize(file, "eng", {
-        logger: (m) => {
-          // optional: console.log(m)
-        },
-      })
-
-      // Masukkan hasil OCR ke textarea
-      setMessage(text)
-    } catch (err) {
-      console.error("OCR error:", err)
-    } finally {
-      setOcrLoading(false)
-    }
-  }
-
   const detectSpam = async () => {
     if (!message.trim()) return
 
