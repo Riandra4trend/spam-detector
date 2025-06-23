@@ -8,6 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Zap, CheckCircle, XCircle, Users } from "lucide-react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
+
+const OCRUploader = dynamic(
+  () => import("@/components/ui/OCRUploader"),
+  { ssr: false }
+);
 
 type SpamResult = {
   label: "Spam" | "Not Spam"
@@ -124,15 +130,9 @@ export default function SpamDetectorLanding() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Upload gambar */}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={ocrLoading}
-                className="block w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4 file:rounded file:border-0
-                  file:text-sm file:font-semibold file:bg-primary
-                  file:text-primary-foreground hover:file:bg-primary/90"
+              <OCRUploader 
+                onTextExtracted={setMessage} 
+                setOcrLoading={setOcrLoading} 
               />
               {ocrLoading && <p className="text-sm text-muted-foreground">Extracting text…</p>}
 
