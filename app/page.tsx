@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Tesseract from "tesseract.js"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,7 +23,6 @@ export default function SpamDetectorLanding() {
   const [message, setMessage] = useState("")
   const [result, setResult] = useState<SpamResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [ocrLoading, setOcrLoading] = useState(false)
 
   const detectSpam = async () => {
     if (!message.trim()) return
@@ -105,12 +103,7 @@ export default function SpamDetectorLanding() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Upload gambar */}
-              <OCRUploader 
-                onTextExtracted={setMessage} 
-                setOcrLoading={setOcrLoading} 
-              />
-              {ocrLoading && <p className="text-sm text-muted-foreground">Extracting text…</p>}
-
+              <OCRUploader onTextExtracted={setMessage} />
               {/* Textarea manual atau hasil OCR */}
               <Textarea
                 placeholder="Enter your message here..."
