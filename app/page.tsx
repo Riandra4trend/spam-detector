@@ -50,7 +50,8 @@ export default function SpamDetectorLanding() {
 
     setIsLoading(true)
     try {
-      const response = await fetch("http://localhost:8000/predict", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/predict";
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

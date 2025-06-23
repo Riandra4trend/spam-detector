@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: spamguard-frontend-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000/predict
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: spamguard-backend-prod
+    # Port be ndk perlu di expose ke host di prod, krna fe aksesnya lewat network internal Docker.
+    # Uncomment klo perlu akses langsung dari luar untuk debug.
+    # ports:
+    #  - "8000:8000"
+    restart: unless-stopped
